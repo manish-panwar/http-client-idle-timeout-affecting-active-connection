@@ -1,6 +1,5 @@
 package reproducer;
 
-import io.vertx.core.http.HttpServerOptions;
 import io.vertx.rxjava.core.Vertx;
 import io.vertx.rxjava.core.http.HttpServerRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +16,8 @@ public class HttpServer {
 
     @PostConstruct
     public void startServer() {
-        System.setProperty("logback.configurationFile", "logback.xml");
-        vertx.createHttpServer(new HttpServerOptions()
-                .setCompressionSupported(true))
-                .requestHandler(request -> simulateRemoteServer(request))
+        vertx.createHttpServer()
+                .requestHandler(request -> simulateDelayedResponse(request))
                 .listen(8080, result -> {
                     if (result.succeeded()) {
                         serverStarted = true;
@@ -28,8 +25,7 @@ public class HttpServer {
                 });
     }
 
-    private void simulateRemoteServer(final HttpServerRequest request) {
-        // Sleep on response so that we simulate the delayed response.
+    private void simulateDelayedResponse(final HttpServerRequest request) {
         vertx.setTimer(5000, nothing -> {
             request.response()
                     .setChunked(true)
